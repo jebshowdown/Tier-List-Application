@@ -2,8 +2,11 @@ package com.jlybb.practiceapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,8 +16,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,6 +33,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,7 +44,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.net.Uri
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import com.jlybb.practiceapp.ui.theme.PracticeappTheme
+import coil3.compose.AsyncImage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +56,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PracticeappTheme {
-                    Skeleton()
+                    MainApp()
                 }
             }
         }
@@ -60,6 +79,18 @@ fun Tiers(modifier: Modifier = Modifier) {
 
     }
 }
+//
+//@Composable
+//fun PlacementGrid(){
+//    LazyVerticalGrid(
+//        modifier = Modifier.fillMaxSize(),
+//        columns = GridCells.Adaptive(minSize = 75.dp),
+//        verticalArrangement = Arrangement.spacedBy(8.dp),
+//        horizontalArrangement = Arrangement.spacedBy(8.dp)
+//    ) {
+//
+//    }
+//}
 
 @Composable
 fun TierBox(letter:Char, color:Long, modifier:Modifier = Modifier) {
@@ -80,7 +111,16 @@ fun TierBox(letter:Char, color:Long, modifier:Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Skeleton(){
+fun MainApp(){
+    var imageUris by remember {
+        mutableStateOf<List<Uri?>>(emptyList()) }
+
+    val photoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(10)
+    ) { uris ->
+        imageUris = uris
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -101,11 +141,33 @@ fun Skeleton(){
                 containerColor = Color.DarkGray,
                 contentColor = Color.White
             ) {
-                Text(
+                LazyHorizontalGrid(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    text = "Images go here"
+                    rows = GridCells.Fixed(1),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ){
+                    items(imageUris){ uri ->
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(75.dp)
+                        )
+                    }
+                }
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { // onClick -> open photo picker
+                photoPicker.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+            }) {
+                Icon(Icons.Default.Add,
+                    contentDescription = "Add"
                 )
             }
         }
@@ -115,5 +177,4 @@ fun Skeleton(){
             modifier = Modifier.padding(innerPadding)
         )
     }
-
 }
