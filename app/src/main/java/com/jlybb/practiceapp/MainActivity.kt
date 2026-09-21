@@ -1,5 +1,6 @@
 package com.jlybb.practiceapp
 
+import android.content.ClipData
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -45,6 +46,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.net.Uri
+import androidx.compose.foundation.draganddrop.dragAndDropSource
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragAndDropTransferData
+import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import com.jlybb.practiceapp.ui.theme.PracticeappTheme
@@ -63,42 +74,139 @@ class MainActivity : ComponentActivity() {
     }
 
 @Composable
-fun Tiers(modifier: Modifier = Modifier) {
+fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the left column
     Column(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        TierBox('S', 0xffff6961, modifier = Modifier.weight(1f))
-        TierBox('A', 0xFFffb347, modifier = Modifier.weight(1f))
-        TierBox('B', 0xfffada5e, modifier = Modifier.weight(1f))
-        TierBox('C', 0xFFb2ec5d, modifier = Modifier.weight(1f))
-        TierBox('D', 0xff87ceeb, modifier = Modifier.weight(1f))
-        TierBox('E', 0xFFb39eb5, modifier = Modifier.weight(1f))
-        TierBox('F', 0xfff984e5, modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ){
+            TierBox('S', 0xffff6961)
+            PlacementGrid(modifier = Modifier.weight(1f))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ){
+            TierBox('A', 0xFFffb347)
+            PlacementGrid(modifier = Modifier.weight(1f))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ){
+            TierBox('B', 0xfffada5e)
+            PlacementGrid(modifier = Modifier.weight(1f))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ){
+            TierBox('C', 0xFFb2ec5d)
+            PlacementGrid(modifier = Modifier.weight(1f))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ){
+            TierBox('D', 0xff87ceeb)
+            PlacementGrid(modifier = Modifier.weight(1f))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ){
+            TierBox('E', 0xFFb39eb5)
+            PlacementGrid(modifier = Modifier.weight(1f))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ){
+            TierBox('F', 0xfff984e5)
+            PlacementGrid(modifier = Modifier.weight(1f))
+        }
+
+        //TierBox('S', 0xffff6961, modifier = Modifier.weight(1f))
+        //TierBox('A', 0xFFffb347, modifier = Modifier.weight(1f))
+        //TierBox('B', 0xfffada5e, modifier = Modifier.weight(1f))
+        //TierBox('C', 0xFFb2ec5d, modifier = Modifier.weight(1f))
+        //TierBox('D', 0xff87ceeb, modifier = Modifier.weight(1f))
+        //TierBox('E', 0xFFb39eb5, modifier = Modifier.weight(1f))
+        //TierBox('F', 0xfff984e5, modifier = Modifier.weight(1f))
 
     }
 }
-//
-//@Composable
-//fun PlacementGrid(){
-//    LazyVerticalGrid(
-//        modifier = Modifier.fillMaxSize(),
-//        columns = GridCells.Adaptive(minSize = 75.dp),
-//        verticalArrangement = Arrangement.spacedBy(8.dp),
-//        horizontalArrangement = Arrangement.spacedBy(8.dp)
-//    ) {
-//
-//    }
-//}
+
 
 @Composable
-fun TierBox(letter:Char, color:Long, modifier:Modifier = Modifier) {
-    Box(
+fun PlacementGrid(modifier: Modifier){
+    var tierUris by remember {
+        mutableStateOf<List<Uri?>>(emptyList())
+    }
+
+    val callback = remember {
+        object : DragAndDropTarget {
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                val clipData = event
+                    .toAndroidDragEvent()
+                    .clipData
+                val selectedUri = Uri.parse(
+                    clipData
+                    .getItemAt(0)
+                    .text
+                    ?.toString()
+                )
+                tierUris = tierUris + selectedUri
+
+                return true
+            }
+        }
+    }
+
+    LazyHorizontalGrid(
         modifier = modifier
+            .dragAndDropTarget(
+                shouldStartDragAndDrop = { true },
+                target = callback
+            )
+        .size(100.dp),
+        rows = GridCells.Fixed(1)
+
+    ){
+            items(tierUris){ uri ->
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                ){
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillBounds
+                    )
+                }
+            }
+        }
+    }
+
+@Composable
+fun TierBox(letter:Char, color:Long) { // sets up the box for each tier
+    Box(
+        modifier = Modifier
             .fillMaxHeight()
             .background(Color(color))
-            .padding(8.dp),
+            .width(30.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -149,13 +257,25 @@ fun MainApp(){
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ){
                     items(imageUris){ uri ->
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                        Box(
                             modifier = Modifier
                                 .size(75.dp)
-                        )
+                                .dragAndDropSource{_ ->
+                                    DragAndDropTransferData(
+                                        ClipData.newPlainText(
+                                            "Photo",uri.toString()
+                                        )
+                                    )
+                                }
+                        ){
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
@@ -174,7 +294,7 @@ fun MainApp(){
     ) {
         innerPadding ->
         Tiers(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
         )
     }
 }
