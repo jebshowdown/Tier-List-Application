@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,24 +40,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.net.Uri
 import androidx.compose.foundation.draganddrop.dragAndDropSource
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import com.jlybb.practiceapp.ui.theme.PracticeappTheme
 import coil3.compose.AsyncImage
+import kotlin.collections.plus
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,7 +88,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .fillMaxWidth()
                 .weight(1f)
         ){
-            TierBox('A', 0xFFffb347)
+            TierBox('A', 0xffffb347)
             PlacementGrid(modifier = Modifier.weight(1f))
         }
         Row(
@@ -109,7 +104,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .fillMaxWidth()
                 .weight(1f)
         ){
-            TierBox('C', 0xFFb2ec5d)
+            TierBox('C', 0xffb2ec5d)
             PlacementGrid(modifier = Modifier.weight(1f))
         }
         Row(
@@ -125,7 +120,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .fillMaxWidth()
                 .weight(1f)
         ){
-            TierBox('E', 0xFFb39eb5)
+            TierBox('E', 0xffb39eb5)
             PlacementGrid(modifier = Modifier.weight(1f))
         }
         Row(
@@ -136,14 +131,6 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
             TierBox('F', 0xfff984e5)
             PlacementGrid(modifier = Modifier.weight(1f))
         }
-
-        //TierBox('S', 0xffff6961, modifier = Modifier.weight(1f))
-        //TierBox('A', 0xFFffb347, modifier = Modifier.weight(1f))
-        //TierBox('B', 0xfffada5e, modifier = Modifier.weight(1f))
-        //TierBox('C', 0xFFb2ec5d, modifier = Modifier.weight(1f))
-        //TierBox('D', 0xff87ceeb, modifier = Modifier.weight(1f))
-        //TierBox('E', 0xFFb39eb5, modifier = Modifier.weight(1f))
-        //TierBox('F', 0xfff984e5, modifier = Modifier.weight(1f))
 
     }
 }
@@ -188,6 +175,13 @@ fun PlacementGrid(modifier: Modifier){
                 Box(
                     modifier = Modifier
                         .size(100.dp)
+                        .dragAndDropSource{_ ->
+                            DragAndDropTransferData(
+                                ClipData.newPlainText(
+                                    "Photo",uri.toString()
+                                )
+                            )
+                        }
                 ){
                     AsyncImage(
                         model = uri,
@@ -229,6 +223,24 @@ fun MainApp(){
         imageUris = uris
     }
 
+    val callback = remember {
+        object : DragAndDropTarget {
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                val clipData = event
+                    .toAndroidDragEvent()
+                    .clipData
+                val selectedUri = Uri.parse(
+                    clipData
+                        .getItemAt(0)
+                        .text
+                        ?.toString()
+                )
+
+                return true
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -251,7 +263,11 @@ fun MainApp(){
             ) {
                 LazyHorizontalGrid(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .dragAndDropTarget(
+                            shouldStartDragAndDrop = { true },
+                            target = callback
+                        ),
                     rows = GridCells.Fixed(1),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
