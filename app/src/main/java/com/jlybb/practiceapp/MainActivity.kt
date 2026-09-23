@@ -46,6 +46,7 @@ import android.net.Uri
 import androidx.compose.foundation.draganddrop.dragAndDropSource
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
@@ -154,8 +155,8 @@ fun PlacementGrid(modifier: Modifier){
                     .text
                     ?.toString()
                 )
-                tierUris = tierUris + selectedUri
 
+                tierUris += selectedUri
                 return true
             }
         }
@@ -167,15 +168,17 @@ fun PlacementGrid(modifier: Modifier){
                 shouldStartDragAndDrop = { true },
                 target = callback
             )
-        .size(100.dp),
+        .size(100.dp)
+        .background(Color.Black),
         rows = GridCells.Fixed(1)
 
     ){
             items(tierUris){ uri ->
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
+                        .aspectRatio(1f)
                         .dragAndDropSource{_ ->
+                            tierUris -= uri
                             DragAndDropTransferData(
                                 ClipData.newPlainText(
                                     "Photo",uri.toString()
@@ -187,7 +190,7 @@ fun PlacementGrid(modifier: Modifier){
                         model = uri,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.FillBounds
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
@@ -235,7 +238,7 @@ fun MainApp(){
                         .text
                         ?.toString()
                 )
-
+                imageUris += selectedUri
                 return true
             }
         }
@@ -263,11 +266,7 @@ fun MainApp(){
             ) {
                 LazyHorizontalGrid(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .dragAndDropTarget(
-                            shouldStartDragAndDrop = { true },
-                            target = callback
-                        ),
+                        .fillMaxWidth(),
                     rows = GridCells.Fixed(1),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -275,7 +274,11 @@ fun MainApp(){
                     items(imageUris){ uri ->
                         Box(
                             modifier = Modifier
-                                .size(75.dp)
+                                .aspectRatio(1f)
+                                .dragAndDropTarget(
+                                    shouldStartDragAndDrop = { true },
+                                    target = callback
+                                )
                                 .dragAndDropSource{_ ->
                                     DragAndDropTransferData(
                                         ClipData.newPlainText(
