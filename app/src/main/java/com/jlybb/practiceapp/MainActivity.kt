@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
     }
 
 @Composable
-fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the left column
+fun Tiers(modifier: Modifier = Modifier, tierUris: Map<Char, List<Uri?>>, OnDrop: (Uri, Char) -> Unit) { // sets up the tier sections on the left column
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
@@ -82,7 +82,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .weight(1f)
         ){
             TierBox('S', 0xffff6961)
-            PlacementGrid(modifier = Modifier.weight(1f))
+            PlacementGrid(modifier = Modifier.weight(1f), 'S', tierUris = tierUris, OnDrop = OnDrop)
         }
         Row(
             modifier = Modifier
@@ -90,7 +90,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .weight(1f)
         ){
             TierBox('A', 0xffffb347)
-            PlacementGrid(modifier = Modifier.weight(1f))
+            PlacementGrid(modifier = Modifier.weight(1f), 'A', tierUris = tierUris, OnDrop = OnDrop)
         }
         Row(
             modifier = Modifier
@@ -98,7 +98,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .weight(1f)
         ){
             TierBox('B', 0xfffada5e)
-            PlacementGrid(modifier = Modifier.weight(1f))
+            PlacementGrid(modifier = Modifier.weight(1f), 'B', tierUris = tierUris, OnDrop = OnDrop)
         }
         Row(
             modifier = Modifier
@@ -106,7 +106,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .weight(1f)
         ){
             TierBox('C', 0xffb2ec5d)
-            PlacementGrid(modifier = Modifier.weight(1f))
+            PlacementGrid(modifier = Modifier.weight(1f), 'C', tierUris = tierUris, OnDrop = OnDrop)
         }
         Row(
             modifier = Modifier
@@ -114,7 +114,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .weight(1f)
         ){
             TierBox('D', 0xff87ceeb)
-            PlacementGrid(modifier = Modifier.weight(1f))
+            PlacementGrid(modifier = Modifier.weight(1f), 'D', tierUris = tierUris, OnDrop = OnDrop)
         }
         Row(
             modifier = Modifier
@@ -122,7 +122,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .weight(1f)
         ){
             TierBox('E', 0xffb39eb5)
-            PlacementGrid(modifier = Modifier.weight(1f))
+            PlacementGrid(modifier = Modifier.weight(1f), 'E', tierUris = tierUris, OnDrop = OnDrop)
         }
         Row(
             modifier = Modifier
@@ -130,7 +130,7 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
                 .weight(1f)
         ){
             TierBox('F', 0xfff984e5)
-            PlacementGrid(modifier = Modifier.weight(1f))
+            PlacementGrid(modifier = Modifier.weight(1f), 'F', tierUris = tierUris, OnDrop = OnDrop)
         }
 
     }
@@ -138,10 +138,10 @@ fun Tiers(modifier: Modifier = Modifier) { // sets up the tier sections on the l
 
 
 @Composable
-fun PlacementGrid(modifier: Modifier){
-    var tierUris by remember {
-        mutableStateOf<List<Uri?>>(emptyList())
-    }
+fun PlacementGrid(modifier: Modifier,
+                  tier: Char,
+                  tierUris: Map<Char, List<Uri?>>,
+                  OnDrop: (Uri, tier: Char) -> Unit) {
 
     val callback = remember {
         object : DragAndDropTarget {
@@ -155,8 +155,7 @@ fun PlacementGrid(modifier: Modifier){
                     .text
                     ?.toString()
                 )
-
-                tierUris += selectedUri
+                OnDrop(selectedUri, tier)
                 return true
             }
         }
@@ -173,12 +172,11 @@ fun PlacementGrid(modifier: Modifier){
         rows = GridCells.Fixed(1)
 
     ){
-            items(tierUris){ uri ->
+            items(tierUris[tier]?: emptyList()){ uri ->
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .dragAndDropSource{_ ->
-                            tierUris -= uri
                             DragAndDropTransferData(
                                 ClipData.newPlainText(
                                     "Photo",uri.toString()
@@ -219,6 +217,38 @@ fun TierBox(letter:Char, color:Long) { // sets up the box for each tier
 fun MainApp(){
     var imageUris by remember {
         mutableStateOf<List<Uri?>>(emptyList()) }
+
+    var tierUris by remember {
+        mutableStateOf<Map<Char, List<Uri>>>(
+            mapOf(
+                'S' to emptyList(),
+                'A' to emptyList(),
+                'B' to emptyList(),
+                'C' to emptyList(),
+                'D' to emptyList(),
+                'E' to emptyList(),
+                'F' to emptyList()
+            )
+        )
+    }
+
+    fun moveToTier(uri: Uri, tier: Char) {
+        imageUris = imageUris - uri
+
+        tierUris = tierUris.mapValues { (key, uris) ->
+
+            if (key == tier && !uris.contains(uri)) {
+                uris + uri
+
+            }
+            else if(key == tier && uris.contains(uri)){
+                return
+        }
+            else {
+                uris - uri
+            }
+        }
+    }
 
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(10)
@@ -314,6 +344,10 @@ fun MainApp(){
         innerPadding ->
         Tiers(
             modifier = Modifier.padding(innerPadding),
+            tierUris = tierUris,
+            OnDrop = { uri, tier ->
+                moveToTier(uri, tier)
+            }
         )
     }
 }
