@@ -253,7 +253,7 @@ fun MainApp(){
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(10)
     ) { uris ->
-        imageUris = uris
+        imageUris += uris
     }
 
     val callback = remember {
@@ -305,10 +305,6 @@ fun MainApp(){
                         Box(
                             modifier = Modifier
                                 .aspectRatio(1f)
-                                .dragAndDropTarget(
-                                    shouldStartDragAndDrop = { true },
-                                    target = callback
-                                )
                                 .dragAndDropSource{_ ->
                                     DragAndDropTransferData(
                                         ClipData.newPlainText(
