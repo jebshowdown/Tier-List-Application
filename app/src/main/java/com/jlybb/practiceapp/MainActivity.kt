@@ -256,24 +256,6 @@ fun MainApp(){
         imageUris += uris
     }
 
-    val callback = remember {
-        object : DragAndDropTarget {
-            override fun onDrop(event: DragAndDropEvent): Boolean {
-                val clipData = event
-                    .toAndroidDragEvent()
-                    .clipData
-                val selectedUri = Uri.parse(
-                    clipData
-                        .getItemAt(0)
-                        .text
-                        ?.toString()
-                )
-                imageUris += selectedUri
-                return true
-            }
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
