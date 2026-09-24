@@ -53,6 +53,8 @@ import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import com.jlybb.practiceapp.ui.theme.PracticeappTheme
 import coil3.compose.AsyncImage
 import kotlin.collections.plus
@@ -266,7 +268,9 @@ fun MainApp(){
                 title = {
                     Text(
                         text = "Tier List",
-                        color = Color.White
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic
                     )
                 }
             )
